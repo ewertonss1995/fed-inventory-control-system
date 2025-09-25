@@ -1,0 +1,86 @@
+<div class="login-container">
+  <div class="login-card">
+    <div class="login-header">
+      <h2>Sistema de Controle de Estoque</h2>
+      <p>Faça login para acessar o sistema</p>
+    </div>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+      <!-- Campo Username -->
+      <div class="form-group">
+        <label for="username">Usuário</label>
+        <input
+          type="text"
+          id="username"
+          formControlName="username"
+          class="form-control"
+          [class.error]="hasError('username', 'required') || hasError('username', 'minlength')"
+          placeholder="Digite seu usuário"
+        />
+        <div class="error-messages">
+          <small *ngIf="hasError('username', 'required')" class="error-text">
+            Usuário é obrigatório
+          </small>
+          <small *ngIf="hasError('username', 'minlength')" class="error-text">
+            Usuário deve ter pelo menos 3 caracteres
+          </small>
+        </div>
+      </div>
+
+      <!-- Campo Password -->
+      <div class="form-group">
+        <label for="password">Senha</label>
+        <input
+          type="password"
+          id="password"
+          formControlName="password"
+          class="form-control"
+          [class.error]="hasError('password', 'required') || hasError('password', 'minlength')"
+          placeholder="Digite sua senha"
+        />
+        <div class="error-messages">
+          <small *ngIf="hasError('password', 'required')" class="error-text">
+            Senha é obrigatória
+          </small>
+          <small *ngIf="hasError('password', 'minlength')" class="error-text">
+            Senha deve ter pelo menos 6 caracteres
+          </small>
+        </div>
+      </div>
+
+      <!-- Mensagem de resposta -->
+      <div *ngIf="loginMessage" class="message" [class.success]="loginSuccess" [class.error]="!loginSuccess">
+        {{ loginMessage }}
+      </div>
+
+      <!-- Botões -->
+      <div class="form-actions">
+        <button
+          type="submit"
+          class="btn btn-primary"
+          [disabled]="isLoading"
+          [class.loading]="isLoading"
+        >
+          <span *ngIf="isLoading" class="loading-spinner"></span>
+          {{ isLoading ? 'Entrando...' : 'Entrar' }}
+        </button>
+
+        <button
+          type="button"
+          class="btn btn-secondary"
+          (click)="resetForm()"
+          [disabled]="isLoading"
+        >
+          Limpar
+        </button>
+      </div>
+    </form>
+
+    <!-- Informações de demonstração -->
+    <div class="demo-info">
+      <h4>Credenciais de demonstração:</h4>
+      <p><strong>Usuário:</strong> admin</p>
+      <p><strong>Senha:</strong> 123456</p>
+    </div>
+  </div>
+</div>
