@@ -21,11 +21,11 @@
       <!-- Formulário reativo de login -->
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
 
-        <!-- Campo de login (email) -->
+        <!-- Campo de login (email ou nome de usuário) -->
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Email ou Nome de Usuário</mat-label>
-          <input matInput type="email" formControlName="login" placeholder="Digite seu email" autocomplete="username">
-          <!-- <mat-icon matSuffix>person</mat-icon> -->
+          <input matInput type="text" formControlName="login" placeholder="Digite seu email ou nome de usuário" autocomplete="username">
+          <mat-icon matSuffix>person</mat-icon>
 
           <!-- Mensagens de erro para o campo login -->
           @if(loginForm.get('login')?.invalid && loginForm.get('login')?.touched) {
@@ -44,7 +44,7 @@
           <!-- Botão para mostrar/ocultar senha -->
           <button mat-icon-button matSuffix type="button" (click)="togglePasswordVisibility()"
             [attr.aria-label]="'Esconder senha'" [attr.aria-pressed]="hidePassword">
-            <!-- <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon> -->
+            <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
           </button>
 
           <!-- Mensagens de erro para o campo senha -->
@@ -63,13 +63,22 @@
         </div>
 
         <!-- Botão de login -->
-        <button mat-raised-button color="primary" type="submit" class="login-button full-width" [disabled]="isLoading">
+        <button
+          mat-raised-button
+          color="primary"
+          type="submit"
+          class="login-button full-width"
+          [disabled]="isLoading"
+          (click)="onSubmit()">
           <!-- Texto do botão com indicador de carregamento -->
           @if(!isLoading) {
-          <span> <!-- <mat-icon>login</mat-icon> --> Entrar</span>
+          <span>
+            <mat-icon>login</mat-icon>
+            Entrar
+          </span>
           } @else {
-          <span> 
-            <mat-icon class="spinner">refresh</mat-icon> 
+          <span>
+            <mat-icon class="spinner">refresh</mat-icon>
             Entrando...
           </span>
           }
@@ -84,13 +93,13 @@
 
         <!-- Link para recuperação de senha -->
         <button mat-button color="accent" type="button" class="action-link" (click)="onForgotPassword()">
-          <!-- <mat-icon>lock_reset</mat-icon> -->
+          <mat-icon>lock_reset</mat-icon>
           Esqueci minha senha
         </button>
 
         <!-- Link para cadastro de novo usuário -->
         <button mat-button color="accent" type="button" class="action-link" (click)="onRegister()">
-          <!-- <mat-icon>person_add</mat-icon> -->
+          <mat-icon>person_add</mat-icon>
           Criar nova conta
         </button>
 

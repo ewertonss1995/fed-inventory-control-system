@@ -3,21 +3,27 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "fed-inventory-control-system": {
+    "fed-node-npm-template": {
       "projectType": "application",
-      "schematics": {},
+      "schematics": {
+        "@schematics/angular:component": {
+          "style": "scss"
+        }
+      },
       "root": "",
       "sourceRoot": "src",
       "prefix": "app",
       "architect": {
         "build": {
-          "builder": "@angular/build:application",
+          "builder": "@angular-devkit/build-angular:browser-esbuild",
           "options": {
-            "browser": "src/main.ts",
+            "outputPath": "dist/",
+            "index": "src/index.html",
+            "main": "src/main.ts",
             "polyfills": [
-              "zone.js"
             ],
             "tsConfig": "tsconfig.app.json",
+            "inlineStyleLanguage": "scss",
             "assets": [
               {
                 "glob": "**/*",
@@ -25,8 +31,9 @@
               }
             ],
             "styles": [
-              "src/styles.css"
-            ]
+              "@angular/material/prebuilt-themes/azure-blue.css"
+            ],
+            "scripts": []
           },
           "configurations": {
             "production": {
@@ -47,43 +54,45 @@
             "development": {
               "optimization": false,
               "extractLicenses": false,
-              "sourceMap": true
+              "sourceMap": true,
+              "scripts": [
+
+              ],
+              "assets": [
+                {
+                  "glob": "**/*",
+                  "input": "mocks/serve/assets/",
+                  "output": "/assets/"
+                }
+              ]
             }
           },
           "defaultConfiguration": "production"
         },
         "serve": {
-          "builder": "@angular/build:dev-server",
+          "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "fed-inventory-control-system:build:production"
+              "buildTarget": "fed-node-npm-template:build:production"
             },
             "development": {
-              "buildTarget": "fed-inventory-control-system:build:development"
+              "buildTarget": "fed-node-npm-template:build:development"
+            },
+            "options": {
+              "proxyConfig": "proxy.conf.json"
             }
           },
           "defaultConfiguration": "development"
         },
         "extract-i18n": {
-          "builder": "@angular/build:extract-i18n"
+          "builder": "@angular-devkit/build-angular:extract-i18n"
         },
         "test": {
-          "builder": "@angular/build:karma",
+          "builder": "@angular-devkit/build-angular:jest",
           "options": {
             "polyfills": [
-              "zone.js",
-              "zone.js/testing"
             ],
-            "tsConfig": "tsconfig.spec.json",
-            "assets": [
-              {
-                "glob": "**/*",
-                "input": "public"
-              }
-            ],
-            "styles": [
-              "src/styles.css"
-            ]
+            "tsConfig": "tsconfig.spec.json"
           }
         }
       }
