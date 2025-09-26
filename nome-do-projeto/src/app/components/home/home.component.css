@@ -1,0 +1,455 @@
+/* =============================================================================
+   ESTILOS DO COMPONENTE HOME - TELA DE LOGIN
+
+   Este arquivo contém todos os estilos necessários para a tela de login
+   do Sistema de Controle de Estoque, utilizando Angular Material Design.
+
+   Autor: Sistema de Controle de Estoque
+   Versão: 1.0.0
+   ============================================================================= */
+
+/* Container principal da tela de login */
+.login-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 20px;
+  font-family: 'Roboto', sans-serif;
+}
+
+/* Card principal do formulário de login */
+.login-card {
+  width: 100%;
+  max-width: 400px;
+  padding: 0;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+/* Cabeçalho do card */
+.login-header {
+  background: linear-gradient(135deg, #3f51b5 0%, #2196f3 100%);
+  color: white;
+  padding: 24px;
+  text-align: center;
+  margin-bottom: 0;
+}
+
+/* Título principal do login */
+.login-title {
+  font-size: 1.5rem !important;
+  font-weight: 500 !important;
+  margin: 0 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* Ícone no título */
+.login-icon {
+  font-size: 1.8rem;
+  color: #fff;
+}
+
+/* Subtítulo do login */
+.login-subtitle {
+  font-size: 0.9rem !important;
+  color: rgba(255, 255, 255, 0.8) !important;
+  margin-top: 8px !important;
+  font-weight: 300 !important;
+}
+
+/* Conteúdo principal do card */
+.login-content {
+  padding: 32px 24px 24px;
+}
+
+/* Formulário de login */
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Campos de formulário com largura completa */
+.full-width {
+  width: 100%;
+}
+
+/* Personalização dos campos do Material */
+.mat-mdc-form-field {
+  margin-bottom: 8px;
+}
+
+/* Container do checkbox "Lembrar-me" */
+.remember-me-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: -30px 0 -15px 0;
+}
+
+/* Checkbox "Lembrar-me" */
+.remember-me-checkbox {
+  font-size: 0.9rem;
+  color: rgba(0, 0, 0, 0.7);
+}
+
+/* Informação sobre credenciais salvas */
+.saved-credentials-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background-color: rgba(76, 175, 80, 0.1);
+  border: 1px solid rgba(76, 175, 80, 0.3);
+  border-radius: 8px;
+  font-size: 0.8rem;
+  color: rgba(56, 142, 60, 0.9);
+  animation: fadeInUp 0.3s ease-out;
+}
+
+.info-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  color: #4caf50;
+}
+
+.info-text {
+  font-weight: 400;
+}
+
+/* Animação para a mensagem informativa */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Botão principal de login */
+.login-button {
+  height: 48px;
+  font-size: 1rem;
+  font-weight: 500;
+  margin-top: 8px;
+  border-radius: 24px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+}
+
+/* Efeito hover no botão de login */
+.login-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(63, 81, 181, 0.3);
+}
+
+/* Ícone no botão de login */
+.login-button mat-icon {
+  margin-right: 8px;
+}
+
+.login-button span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  color: #ffffff;
+  font-weight: 500;
+}
+
+/* Animação de loading (spinner) */
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Seção de ações do card */
+.login-actions {
+  padding: 0 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: -10px;
+}
+
+/* Divisor visual */
+.divider {
+  position: relative;
+  text-align: center;
+  margin: 16px 0;
+}
+
+.divider::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.divider-text {
+  background: white;
+  padding: 0 16px;
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 0.85rem;
+  position: relative;
+  z-index: 1;
+}
+
+/* Container dos links de ação */
+.action-links {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Links de ação (esqueci senha, cadastrar) */
+.action-link {
+  height: 40px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  text-transform: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  border: 1px solid transparent;
+}
+
+.action-link:hover {
+  background-color: rgba(63, 81, 181, 0.04);
+  border-color: rgba(63, 81, 181, 0.2);
+}
+
+/* Ícones nos links de ação */
+.action-link mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+/* Rodapé da página */
+.page-footer {
+  margin-top: 32px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.footer-text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 8px 0;
+  font-size: 0.8rem;
+  font-weight: 300;
+}
+
+.footer-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  opacity: 0.7;
+}
+
+/* =============================================================================
+   RESPONSIVIDADE - ADAPTAÇÃO PARA DIFERENTES TAMANHOS DE TELA
+   ============================================================================= */
+
+/* Tablets e dispositivos médios */
+@media (max-width: 768px) {
+  .login-container {
+    padding: 16px;
+    min-height: 100vh;
+  }
+
+  .login-card {
+    max-width: 360px;
+  }
+
+  .login-content {
+    padding: 24px 20px 20px;
+  }
+
+  .login-actions {
+    padding: 0 20px 20px;
+  }
+}
+
+/* Smartphones e dispositivos pequenos */
+@media (max-width: 480px) {
+  .login-container {
+    padding: 12px;
+  }
+
+  .login-card {
+    max-width: 100%;
+    margin: 0 auto;
+  }
+
+  .login-title {
+    font-size: 1.3rem !important;
+  }
+
+  .login-content {
+    padding: 20px 16px 16px;
+  }
+
+  .login-actions {
+    padding: 0 16px 16px;
+  }
+
+  .login-button {
+    height: 44px;
+  }
+
+  .action-links {
+    gap: 6px;
+  }
+
+  .action-link {
+    height: 36px;
+    font-size: 0.85rem;
+  }
+}
+
+/* Dispositivos muito pequenos */
+@media (max-width: 320px) {
+  .login-container {
+    padding: 8px;
+  }
+
+  .login-title {
+    font-size: 1.2rem !important;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .login-icon {
+    font-size: 1.5rem;
+  }
+}
+
+/* =============================================================================
+   ESTADOS E ANIMAÇÕES
+   ============================================================================= */
+
+/* Estado de focus nos campos */
+.mat-mdc-form-field.mat-focused .mat-mdc-form-field-outline-thick {
+  color: #3f51b5;
+}
+
+/* Animação de entrada do card */
+.login-card {
+  animation: slideInUp 0.6s ease-out;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Animação de entrada do conteúdo */
+.login-content,
+.login-actions {
+  animation: fadeIn 0.8s ease-out 0.2s both;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* =============================================================================
+   PERSONALIZAÇÃO DOS COMPONENTES DO ANGULAR MATERIAL
+   ============================================================================= */
+
+/* Personalização dos botões raised */
+.mat-mdc-raised-button.mat-primary {
+  background-color: #3f51b5;
+  border-radius: 24px;
+}
+
+.mat-mdc-raised-button.mat-primary:hover {
+  background-color: #303f9f;
+}
+
+/* Personalização dos campos outline */
+.mat-mdc-form-field-outline .mat-mdc-form-field-outline-thick {
+  color: #3f51b5;
+}
+
+/* Personalização do checkbox */
+.mat-mdc-checkbox.mat-accent .mat-mdc-checkbox-ripple .mat-ripple-element {
+  background-color: rgba(63, 81, 181, 0.12);
+}
+
+/* Personalização dos ícones de sufixo */
+.mat-mdc-form-field-icon-suffix {
+  color: rgba(0, 0, 0, 0.54);
+}
+
+/* Estado de erro nos campos */
+.mat-mdc-form-field.mat-form-field-invalid .mat-mdc-form-field-outline-thick {
+  color: #f44336;
+}
+
+/* Mensagens de erro */
+.mat-mdc-form-field-error {
+  font-size: 0.75rem;
+  color: #f44336;
+}
+
+/* =============================================================================
+   UTILITÁRIOS E CLASSES AUXILIARES
+   ============================================================================= */
+
+/* Classe para ocultar elementos */
+.hidden {
+  display: none !important;
+}
+
+/* Classe para texto centralizado */
+.text-center {
+  text-align: center;
+}
+
+/* Classe para espaçamento superior */
+.mt-16 {
+  margin-top: 16px;
+}
+
+/* Classe para espaçamento inferior */
+.mb-16 {
+  margin-bottom: 16px;
+}

@@ -1,0 +1,110 @@
+<!-- Container principal da tela de login -->
+<div class="login-container">
+
+  <!-- Card do Material Design para o formulário de login -->
+  <mat-card class="login-card">
+
+    <!-- Cabeçalho do card com título e subtítulo -->
+    <mat-card-header class="login-header">
+      <mat-card-title class="login-title">
+        <mat-icon class="login-icon">inventory_2</mat-icon>
+        Sistema de Controle de Estoque
+      </mat-card-title>
+      <mat-card-subtitle class="login-subtitle">
+        Faça login para acessar o sistema
+      </mat-card-subtitle>
+    </mat-card-header>
+
+    <!-- Conteúdo principal do card -->
+    <mat-card-content class="login-content">
+
+      <!-- Formulário reativo de login -->
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+
+        <!-- Campo de login (email ou nome de usuário) -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Email ou Nome de Usuário</mat-label>
+          <input matInput type="text" formControlName="login" placeholder="Digite seu email ou nome de usuário" autocomplete="username">
+          <mat-icon matSuffix>person</mat-icon>
+
+          <!-- Mensagens de erro para o campo login -->
+          @if(loginForm.get('login')?.invalid && loginForm.get('login')?.touched) {
+          <mat-error>
+            {{ getLoginErrorMessage() }}
+          </mat-error>
+          }
+        </mat-form-field>
+
+        <!-- Campo de senha -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Senha</mat-label>
+          <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password"
+            placeholder="Digite sua senha" autocomplete="current-password">
+
+          <!-- Botão para mostrar/ocultar senha -->
+          <button mat-icon-button matSuffix type="button" (click)="togglePasswordVisibility()"
+            [attr.aria-label]="'Esconder senha'" [attr.aria-pressed]="hidePassword">
+            <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+
+          <!-- Mensagens de erro para o campo senha -->
+          @if(loginForm.get('password')?.invalid && loginForm.get('password')?.touched) {
+          <mat-error>
+            {{ getPasswordErrorMessage() }}
+          </mat-error>
+          }
+        </mat-form-field>
+
+        <!-- Checkbox "Lembrar-me" -->
+        <div class="remember-me-container">
+          <mat-checkbox formControlName="rememberMe" class="remember-me-checkbox">
+            Lembrar-me
+          </mat-checkbox>
+        </div>
+
+        <!-- Botão de login -->
+        <button
+          mat-raised-button
+          color="primary"
+          type="submit"
+          class="login-button full-width"
+          [disabled]="isLoading"
+          (click)="onSubmit()">
+          <!-- Texto do botão com indicador de carregamento -->
+          @if(!isLoading) {
+          <span>
+            <mat-icon>login</mat-icon>
+            Entrar
+          </span>
+          } @else {
+          <span>
+            <mat-icon class="spinner">refresh</mat-icon>
+            Entrando...
+          </span>
+          }
+        </button>
+      </form>
+    </mat-card-content>
+
+    <!-- Rodapé do card com links adicionais -->
+    <mat-card-actions class="login-actions">
+      <!-- Container dos links de ação -->
+      <div class="action-links">
+
+        <!-- Link para recuperação de senha -->
+        <button mat-button color="accent" type="button" class="action-link" (click)="onForgotPassword()">
+          <mat-icon>lock_reset</mat-icon>
+          Esqueci minha senha
+        </button>
+
+        <!-- Link para cadastro de novo usuário -->
+        <button mat-button color="accent" type="button" class="action-link" (click)="onRegister()">
+          <mat-icon>person_add</mat-icon>
+          Criar nova conta
+        </button>
+
+      </div>
+    </mat-card-actions>
+  </mat-card>
+
+</div>
