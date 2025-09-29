@@ -10,6 +10,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { UserService } from '../../core/user/services/user-service';
 
 /**
  * Interface para as credenciais salvas no localStorage
@@ -72,6 +73,7 @@ export class HomeComponent implements OnInit {
    */
   constructor(
     private formBuilder: FormBuilder,
+    private userService: UserService,
     private router: Router
   ) {
     console.log('HomeComponent construído!');
@@ -166,20 +168,13 @@ export class HomeComponent implements OnInit {
    */
   onSubmit(): void {
     console.log('onSubmit foi chamado!');
-    console.log('FormGroup válido?', this.loginForm.valid);
-    console.log('Valor do formulário:', this.loginForm.value);
-    console.log('Status do formulário:', this.loginForm.status);
-    console.log('Erros do formulário:', this.loginForm.errors);
 
     // Verifica se o formulário é válido
     if (this.loginForm.valid) {
       this.isLoading = true;
-      console.log('Formulário é válido! Processando login...');
 
       // Obtém os valores do formulário
       const loginData = this.loginForm.value;
-
-      console.log('Dados de login:', loginData);
 
       // Simula uma requisição de login (substituir por serviço real)
       setTimeout(() => {
@@ -189,9 +184,23 @@ export class HomeComponent implements OnInit {
         // Gerencia as credenciais baseado no checkbox "Lembrar-me"
         this.handleRememberMe(loginData);
 
-        // Aqui seria implementada a lógica de autenticação real
-        // Por enquanto, apenas simula um login bem-sucedido
-        alert('Login realizado com sucesso!');
+        let userModel = {
+          userEmail: loginData.login,
+          userName: loginData.login,
+          password: loginData.password
+        }
+
+        this.userService.userLogin(userModel).subscribe({
+          next: (response) => {
+            this.isLoading = false;
+            localStorage.setItem('acessToken', response.acessToken);
+            console.log('Login bem-sucedido! Resposta do servidor:', response);
+          },
+          error: (error) => {
+            this.isLoading = false;
+            console.error('Error:', error);
+        }
+      })
 
         // Redireciona para o dashboard (substituir pela rota correta)
         // this.router.navigate(['/dashboard']);

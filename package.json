@@ -1,5 +1,5 @@
 {
-  "name": "nome-do-projeto",
+  "name": "inventory-control-system",
   "version": "0.0.0",
   "scripts": {
     "ng": "ng test",

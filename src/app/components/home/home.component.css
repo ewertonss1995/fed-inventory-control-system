@@ -207,7 +207,7 @@
 }
 
 .divider-text {
-  background: white;
+  /* background: white; */
   padding: 0 16px;
   color: rgba(0, 0, 0, 0.6);
   font-size: 0.85rem;
