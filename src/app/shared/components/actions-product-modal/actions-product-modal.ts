@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, Inject, Input } from '@angular/core';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 
 @Component({
@@ -7,20 +8,25 @@ import { MatIconModule } from '@angular/material/icon';
   templateUrl: './actions-product-modal.html',
   styleUrl: './actions-product-modal.scss'
 })
-
 export class ActionsProductModal {
+
+  constructor(
+    @Inject(MAT_DIALOG_DATA) public productId: number,
+    private dialogRef: MatDialogRef<ActionsProductModal>) { }
+
   onEdit() {
-    // lógica de edição
-    alert('Editar produto');
+    alert('Editar produto: ' + this.productId);
   }
 
   onView() {
-    // lógica de visualização
-    alert('Visualizar produto');
+    alert('Visualizar produto: ' + this.productId);
   }
 
   onDelete() {
-    // lógica de deleção
-    alert('Deletar produto');
+    alert('Deletar produto: ' + this.productId);
+  }
+
+  onClose() {
+    this.dialogRef.close();
   }
 }

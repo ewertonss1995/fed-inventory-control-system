@@ -72,7 +72,7 @@ export class ProductTableComponent implements OnInit {
 
   handleClickOnIcon(product: ProductResponseModel) {
     this.productId = product.productId;
-    this.dialog.open(ActionsProductModal);
+    this.dialog.open(ActionsProductModal, { data: this.productId });
   }
 
 }
