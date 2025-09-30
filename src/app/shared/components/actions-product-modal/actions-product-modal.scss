@@ -1,0 +1,79 @@
+
+.mat-dialog-content {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	padding: auto;
+}
+
+.initial-modal-new-class {
+  min-width: 400px;
+  margin-bottom: 20px;
+}
+
+h2[mat-dialog-title] {
+	font-size: 1.5rem;
+	font-weight: 600;
+	margin-bottom: 24px;
+	text-align: center;
+}
+
+.actions-modal-buttons {
+	display: flex;
+	flex-direction: row;
+	gap: 16px;
+	justify-content: center;
+	margin-top: 8px;
+}
+
+.actions-modal-buttons button {
+  min-width: 110px;
+	gap: 6px;
+	font-weight: 500;
+	letter-spacing: 0.5px;
+  padding: 8px ;
+  font-weight: bolder;
+}
+
+.actions-modal-buttons mat-icon {
+	font-size: 20px;
+}
+
+.general-button {
+  background: linear-gradient(135deg, #3f51b5 100%, #2196f3 50%) !important;
+  border-radius: 2cm;
+  color: white;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.edit-button {
+  background: linear-gradient(135deg, #ffcc00 100%) !important;
+}
+
+.delete-button {
+  background: linear-gradient(135deg, #ff3333 100%) !important;
+}
+
+@media (max-width: 400px) {
+	.mat-dialog-content, .initial-modal-new-class {
+		min-width: 0;
+		width: 90vw;
+		padding: 16px 4px 8px 4px;
+	}
+	.actions-modal-buttons {
+		flex-direction: column;
+		gap: 10px;
+		width: 100%;
+	}
+	.actions-modal-buttons button {
+		max-width: 100%;
+		width: 100%;
+		justify-content: center;
+	}
+	h2[mat-dialog-title] {
+		font-size: 1.1rem;
+		margin-bottom: 16px;
+	}
+}
