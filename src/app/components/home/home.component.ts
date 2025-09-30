@@ -10,7 +10,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { UserService } from '../../core/user/services/user-service';
+import { UserService } from '../../core/services/user/user-service';
 
 /**
  * Interface para as credenciais salvas no localStorage
