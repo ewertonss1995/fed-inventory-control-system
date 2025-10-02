@@ -8,6 +8,7 @@ import { ProductService } from '../../core/services/product/product-service';
 import { formatarData } from '../../shared/utils/utilitario-formatador';
 import { MatDialog } from '@angular/material/dialog';
 import { ActionsProductModal } from '../../shared/components/actions-product-modal/actions-product-modal';
+import { ProductRequestModel } from '../../shared/model/product/request/product-request-model';
 
 @Component({
   selector: 'app-product-table',
@@ -17,8 +18,6 @@ import { ActionsProductModal } from '../../shared/components/actions-product-mod
   styleUrls: ['./product-table.component.css']
 })
 export class ProductTableComponent implements OnInit {
-
-  productId: number | undefined;
 
   displayedColumns: string[] =
     [
@@ -71,8 +70,28 @@ export class ProductTableComponent implements OnInit {
   }
 
   handleClickOnIcon(product: ProductResponseModel) {
-    this.productId = product.productId;
-    this.dialog.open(ActionsProductModal, { data: this.productId });
+    let productId = product.productId;
+
+    this.dialog.open(ActionsProductModal)
+      .afterClosed().subscribe(result => {
+        if (result) {
+          if (result.action === 'edit') {
+          } else if (result.action === 'view') {
+            alert(`Visualizar produto: ${productId} - Ação: ${result.action}`);
+          } else if (result.action === 'delete') {
+            this.deleteProduct(productId);
+          }
+        }
+      });
   }
 
+  private deleteProduct(productId: number) {
+    try {
+      this.productService.deleteProduct(productId).subscribe(() => {
+        this.getProducts();
+      });
+    } catch (error) {
+      console.error(`Erro ao deletar produto: ${error}`);
+    }
+  }
 }
