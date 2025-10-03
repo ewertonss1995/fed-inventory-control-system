@@ -1,3 +1,4 @@
+import { UserModel } from './../../shared/model/user/request/user-model';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -177,34 +178,31 @@ export class HomeComponent implements OnInit {
       const loginData = this.loginForm.value;
 
       // Simula uma requisição de login (substituir por serviço real)
-      setTimeout(() => {
-        this.isLoading = false;
-        console.log('Login processado com sucesso!');
+      // setTimeout(() => {
+      this.isLoading = false;
+      console.log('Login processado com sucesso!');
 
-        // Gerencia as credenciais baseado no checkbox "Lembrar-me"
-        this.handleRememberMe(loginData);
+      // Gerencia as credenciais baseado no checkbox "Lembrar-me"
+      this.handleRememberMe(loginData);
 
-        let userModel = {
-          userEmail: loginData.login,
-          userName: loginData.login,
-          password: loginData.password
-        }
+      const loginUserData: UserModel = buildLoginUserModel(loginData);
 
-        this.userService.userLogin(userModel).subscribe({
-          next: (response) => {
-            this.isLoading = false;
-            localStorage.setItem('acessToken', response.acessToken);
-            console.log('Login bem-sucedido! Resposta do servidor:', response);
-          },
-          error: (error) => {
-            this.isLoading = false;
-            console.error('Error:', error);
+      this.userService.userLogin(loginUserData).subscribe({
+        next: (response) => {
+          this.isLoading = false;
+          localStorage.setItem('acessToken', response.acessToken);
+          console.log('Login bem-sucedido! Resposta do servidor:', response);
+          this.router.navigate(['/home']);
+        },
+        error: (error) => {
+          this.isLoading = false;
+          console.error('Error:', error);
         }
       })
 
-        // Redireciona para o dashboard (substituir pela rota correta)
-        // this.router.navigate(['/dashboard']);
-      }, 2000);
+      // Redireciona para o dashboard (substituir pela rota correta)
+      // this.router.navigate(['/dashboard']);
+      // }, 2000);
 
     } else {
       console.log('Formulário inválido! Marcando campos como touched...');
@@ -218,6 +216,21 @@ export class HomeComponent implements OnInit {
 
       // Marca todos os campos como "touched" para exibir as mensagens de erro
       this.markFormGroupTouched();
+    }
+
+    /**
+     * Prepara os dados do usuário para o login, diferenciando entre email e nome de usuário.
+     *
+     * @param loginData - Dados do formulário de login
+     * @returns Objeto UserModel pronto para autenticação
+     */
+    function buildLoginUserModel(loginData: any): UserModel {
+      const isEmail = typeof loginData.login === 'string' && loginData.login.includes('@');
+      return {
+        userEmail: isEmail ? loginData.login.trim().toLowerCase() : '',
+        userName: !isEmail ? loginData.login.trim() : '',
+        password: loginData.password
+      };
     }
   }
 

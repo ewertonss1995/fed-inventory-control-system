@@ -3,14 +3,14 @@ import { MatDialogRef } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 
 @Component({
-  selector: 'app-actions-product-modal',
+  selector: 'app-actions-modal',
   imports: [MatIconModule],
-  templateUrl: './actions-product-modal.html',
-  styleUrl: './actions-product-modal.scss'
+  templateUrl: './actions-modal.html',
+  styleUrl: './actions-modal.scss'
 })
-export class ActionsProductModal {
+export class ActionsModal {
 
-  constructor(private dialogRef: MatDialogRef<ActionsProductModal>) { }
+  constructor(private dialogRef: MatDialogRef<ActionsModal>) { }
 
   onEdit() {
     this.dialogRef.close({ action: 'edit' });
