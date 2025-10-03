@@ -55,7 +55,6 @@ export class ProductFormComponent implements OnInit {
   }
 
   private setupComponentFromDialogData(): void {
-    debugger
     if (this.dialogData) {
       this.product = this.dialogData.product;
       this.categories = this.dialogData.categories || [];

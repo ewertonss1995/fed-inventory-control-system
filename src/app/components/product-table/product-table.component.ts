@@ -107,7 +107,7 @@ export class ProductTableComponent implements OnInit {
 
   private openProductFormDialog(product: ProductResponseModel, enableEditing: boolean, dialogTitle: string) {
     const dialogRef = this.dialog.open(ProductFormComponent, {
-      width: '700px',
+      width: '100%',
       maxWidth: '95vw',
       height: 'auto',
       maxHeight: '90vh',

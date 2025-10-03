@@ -1,3 +1,4 @@
+
 .product-form-card {
   max-width: 800px;
   margin: 20px auto;
@@ -34,6 +35,11 @@
 
 .submit-button {
   min-width: 120px;
+}
+
+::ng-deep .product-form-card {
+  width: 100%;
+  margin: 0;
 }
 
 /* Responsivo para telas menores */
