@@ -7,8 +7,7 @@ import { ProductResponseModel } from '../../shared/model/product/response/produc
 import { ProductService } from '../../core/services/product/product-service';
 import { formatarData } from '../../shared/utils/utilitario-formatador';
 import { MatDialog } from '@angular/material/dialog';
-import { ActionsProductModal } from '../../shared/components/actions-product-modal/actions-product-modal';
-import { ProductRequestModel } from '../../shared/model/product/request/product-request-model';
+import { ActionsModal } from '../../shared/components/actions-modal/actions-modal';
 
 @Component({
   selector: 'app-product-table',
@@ -72,7 +71,7 @@ export class ProductTableComponent implements OnInit {
   handleClickOnIcon(product: ProductResponseModel) {
     let productId = product.productId;
 
-    this.dialog.open(ActionsProductModal)
+    this.dialog.open(ActionsModal)
       .afterClosed().subscribe(result => {
         if (result) {
           if (result.action === 'edit') {
