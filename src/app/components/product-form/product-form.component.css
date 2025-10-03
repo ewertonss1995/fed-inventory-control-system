@@ -1,0 +1,111 @@
+.product-form-card {
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 20px;
+}
+
+.product-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.half-width {
+  width: 48%;
+  display: inline-block;
+}
+
+.half-width:first-of-type {
+  margin-right: 4%;
+}
+
+.form-actions {
+  padding: 16px 0;
+  gap: 12px;
+}
+
+.cancel-button {
+  margin-right: 8px;
+}
+
+.submit-button {
+  min-width: 120px;
+}
+
+/* Responsivo para telas menores */
+@media (max-width: 768px) {
+  .product-form-card {
+    margin: 10px;
+    padding: 16px;
+  }
+
+  .half-width {
+    width: 100%;
+    margin-right: 0;
+    margin-bottom: 16px;
+  }
+
+  .half-width:first-of-type {
+    margin-right: 0;
+  }
+
+  .form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .cancel-button {
+    margin-right: 0;
+    margin-top: 8px;
+  }
+
+  .submit-button {
+    width: 100%;
+  }
+}
+
+/* Estilo para campos obrigatórios */
+.mat-mdc-form-field-required-marker {
+  color: #f44336;
+}
+
+/* Estilo para campos com erro */
+.mat-mdc-form-field.mat-form-field-invalid .mat-mdc-text-field-wrapper {
+  border-color: #f44336;
+}
+
+/* Estilo para campos desabilitados */
+.mat-mdc-form-field .mat-mdc-input-element:disabled {
+  color: rgba(0, 0, 0, 0.38);
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+/* Alinhamento do card header */
+.mat-mdc-card-header .mat-mdc-card-title {
+  font-size: 24px;
+  font-weight: 500;
+  margin: 0;
+}
+
+/* Espaçamento entre os campos */
+.mat-mdc-form-field + .mat-mdc-form-field {
+  margin-top: 8px;
+}
+
+/* Estilo para textarea */
+.mat-mdc-form-field textarea.mat-mdc-input-element {
+  resize: vertical;
+  min-height: 60px;
+}
+
+/* Hover states para botões */
+.submit-button:not(:disabled):hover {
+  background-color: #1976d2;
+}
+
+.cancel-button:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}

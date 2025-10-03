@@ -1,4 +1,4 @@
-import { CategoryResponse } from "../../category/response/CategoryResponse";
+import { CategoryResponseModel } from "../../category/response/category-response-model";
 
 export interface ProductResponseModel {
   productId: number;
@@ -13,7 +13,7 @@ export interface ProductResponseModel {
 
   totalPrice: number;
 
-  category: CategoryResponse;
+  category: CategoryResponseModel;
 
   registrationDate: string;
 

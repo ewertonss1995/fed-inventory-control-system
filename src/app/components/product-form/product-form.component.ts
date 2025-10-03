@@ -1,0 +1,210 @@
+import { Component, Input, Output, EventEmitter, OnInit, Optional, Inject } from '@angular/core';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
+import { ProductResponseModel } from '../../shared/model/product/response/product-response-model';
+import { ProductRequestModel } from '../../shared/model/product/request/product-request-model';
+import { CategoryResponseModel } from '../../shared/model/category/response/category-response-model';
+import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+
+@Component({
+  selector: 'app-product-form',
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatButtonModule,
+    MatCardModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
+    MatDialogModule
+  ],
+  templateUrl: './product-form.component.html',
+  styleUrls: ['./product-form.component.css']
+})
+export class ProductFormComponent implements OnInit {
+  @Input() product?: ProductResponseModel;
+  @Input() categories: CategoryResponseModel[] = [];
+  @Input() isEditMode: boolean = false;
+  @Input() isViewOnly: boolean = false;
+  @Output() formSubmit = new EventEmitter<ProductRequestModel>();
+  @Output() formCancel = new EventEmitter<void>();
+
+  productForm!: FormGroup;
+  dialogTitle: string = 'Formulário de Produto';
+
+
+  constructor(
+    private formBuilder: FormBuilder,
+    @Optional() @Inject(MAT_DIALOG_DATA) public dialogData: any,
+    @Optional() private dialogRef: MatDialogRef<ProductFormComponent>
+  ) { }
+
+  ngOnInit(): void {
+    this.setupComponentFromDialogData();
+    this.initializeForm();
+  }
+
+  private setupComponentFromDialogData(): void {
+    debugger
+    if (this.dialogData) {
+      this.product = this.dialogData.product;
+      this.categories = this.dialogData.categories || [];
+      this.isEditMode = this.dialogData.isEditMode || false;
+      this.isViewOnly = this.dialogData.isViewOnly || false;
+      this.dialogTitle = this.dialogData.title || 'Formulário de Produto';
+    }
+  }
+
+  private initializeForm(): void {
+    if ((this.isEditMode || this.isViewOnly)) {
+      // Modo de edição/visualização - todos os campos
+      this.buildFormToViewOrUpdate();
+    } else {
+      // Modo de criação - apenas campos do ProductRequestModel
+      this.productForm = this.formBuilder.group({
+        productName: ['', [Validators.required, Validators.minLength(2)]],
+        productDescription: ['', [Validators.required, Validators.minLength(5)]],
+        unitPrice: [null, [Validators.required, Validators.min(0.01)]],
+        quantity: [null, [Validators.required, Validators.min(0)]],
+        categoryId: [null, [Validators.required]]
+      });
+    }
+
+    // Atualizar o preço total quando unitPrice ou quantity mudarem
+    if (this.isEditMode && !this.isViewOnly) {
+      this.productForm.get('unitPrice')?.valueChanges.subscribe(() => this.updateTotalPrice());
+      this.productForm.get('quantity')?.valueChanges.subscribe(() => this.updateTotalPrice());
+    }
+  }
+
+  private buildFormToViewOrUpdate(): void {
+    if (this.product) {
+      this.productForm = this.formBuilder.group({
+        productId: [{ value: this.product.productId, disabled: true }],
+        productName: [
+          { value: this.product.productName, disabled: this.isViewOnly },
+          [Validators.required, Validators.minLength(2)]
+        ],
+        productDescription: [
+          { value: this.product.productDescription, disabled: this.isViewOnly },
+          [Validators.required, Validators.minLength(5)]
+        ],
+        unitPrice: [
+          { value: this.product.unitPrice, disabled: this.isViewOnly },
+          [Validators.required, Validators.min(0.01)]
+        ],
+        quantity: [
+          { value: this.product.quantity, disabled: this.isViewOnly },
+          [Validators.required, Validators.min(0)]
+        ],
+        totalPrice: [{ value: this.product.totalPrice, disabled: true }],
+        categoryId: [
+          { value: this.product.category.categoryId, disabled: this.isViewOnly },
+          [Validators.required]
+        ],
+        registrationDate: [{ value: new Date(this.product.registrationDate), disabled: true }],
+        updateDate: [{ value: new Date(this.product.updateDate), disabled: true }]
+      });
+    }
+  }
+
+  private updateTotalPrice(): void {
+    const unitPrice = this.productForm.get('unitPrice')?.value || 0;
+    const quantity = this.productForm.get('quantity')?.value || 0;
+    const totalPrice = unitPrice * quantity;
+    this.productForm.get('totalPrice')?.setValue(totalPrice);
+  }
+
+  onSubmit(): void {
+    if (this.isViewOnly) {
+      this.closeDialog();
+      return;
+    }
+
+    if (this.productForm.valid) {
+      const formValue = this.productForm.getRawValue();
+
+      const productRequest: ProductRequestModel = {
+        productName: formValue.productName,
+        productDescription: formValue.productDescription,
+        unitPrice: formValue.unitPrice,
+        quantity: formValue.quantity,
+        categoryId: formValue.categoryId
+      };
+
+      if (this.dialogRef) {
+        this.dialogRef.close(productRequest);
+      } else {
+        this.formSubmit.emit(productRequest);
+      }
+    } else {
+      this.markFormGroupTouched();
+    }
+  }
+
+  onCancel(): void {
+    this.closeDialog();
+  }
+
+  private closeDialog(): void {
+    if (this.dialogRef) {
+      this.dialogRef.close();
+    } else {
+      this.formCancel.emit();
+    }
+  }
+
+  private markFormGroupTouched(): void {
+    Object.keys(this.productForm.controls).forEach(key => {
+      const control = this.productForm.get(key);
+      control?.markAsTouched();
+    });
+  }
+
+  getErrorMessage(fieldName: string): string {
+    const control = this.productForm.get(fieldName);
+
+    if (control?.hasError('required')) {
+      return `${this.getFieldDisplayName(fieldName)} é obrigatório`;
+    }
+
+    if (control?.hasError('minlength')) {
+      const minLength = control.errors?.['minlength'].requiredLength;
+      return `${this.getFieldDisplayName(fieldName)} deve ter pelo menos ${minLength} caracteres`;
+    }
+
+    if (control?.hasError('min')) {
+      const min = control.errors?.['min'].min;
+      return `${this.getFieldDisplayName(fieldName)} deve ser maior que ${min}`;
+    }
+
+    return '';
+  }
+
+  private getFieldDisplayName(fieldName: string): string {
+    const fieldNames: { [key: string]: string } = {
+      'productName': 'Nome do Produto',
+      'productDescription': 'Descrição',
+      'unitPrice': 'Preço Unitário',
+      'quantity': 'Quantidade',
+      'categoryId': 'Categoria'
+    };
+
+    return fieldNames[fieldName] || fieldName;
+  }
+
+  getCategoryName(categoryId: number): string {
+    const category = this.categories.find(cat => cat.categoryId === categoryId);
+    return category ? category.categoryName : '';
+  }
+}
