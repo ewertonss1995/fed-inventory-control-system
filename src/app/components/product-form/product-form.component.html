@@ -1,7 +1,7 @@
 <mat-card class="product-form-card">
   <mat-card-header style="margin-bottom: 50px;">
-    @if (isEditMode) {
-    <mat-card-title> Editar Produto</mat-card-title>
+    @if (isEditMode && !isViewOnly) {
+    <mat-card-title>Editar Produto</mat-card-title>
     } @else if (isViewOnly) {
     <mat-card-title>Visualizar Produto</mat-card-title>
     } @else {
@@ -13,18 +13,22 @@
     <form [formGroup]="productForm" (ngSubmit)="onSubmit()" class="product-form">
 
       <!-- Campo ID do Produto (apenas no modo de edição) -->
-      <mat-form-field *ngIf="isEditMode" appearance="outline" class="full-width">
+      @if (isEditMode) {
+      <mat-form-field appearance="outline" class="full-width">
         <mat-label>ID do Produto</mat-label>
         <input matInput formControlName="productId" readonly>
       </mat-form-field>
+      }
 
       <!-- Nome do Produto -->
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Nome do Produto *</mat-label>
         <input matInput formControlName="productName" placeholder="Digite o nome do produto">
-        <mat-error *ngIf="productForm.get('productName')?.invalid && productForm.get('productName')?.touched">
+        @if (productForm.get('productName')?.invalid && productForm.get('productName')?.touched) {
+        <mat-error>
           {{ getErrorMessage('productName') }}
         </mat-error>
+        }
       </mat-form-field>
 
       <!-- Descrição do Produto -->
@@ -32,10 +36,11 @@
         <mat-label>Descrição *</mat-label>
         <textarea matInput formControlName="productDescription" placeholder="Digite a descrição do produto"
           rows="3"></textarea>
-        <mat-error
-          *ngIf="productForm.get('productDescription')?.invalid && productForm.get('productDescription')?.touched">
+        @if (productForm.get('productDescription')?.invalid && productForm.get('productDescription')?.touched) {
+        <mat-error>
           {{ getErrorMessage('productDescription') }}
         </mat-error>
+        }
       </mat-form-field>
 
       <!-- Preço Unitário -->
@@ -43,66 +48,94 @@
         <mat-label>Preço Unitário *</mat-label>
         <input matInput type="number" formControlName="unitPrice" placeholder="0,00" min="0" step="0.01">
         <span matTextPrefix>R$ </span>
-        <mat-error *ngIf="productForm.get('unitPrice')?.invalid && productForm.get('unitPrice')?.touched">
+        @if (productForm.get('unitPrice')?.invalid && productForm.get('unitPrice')?.touched) {
+        <mat-error>
           {{ getErrorMessage('unitPrice') }}
         </mat-error>
+        }
       </mat-form-field>
 
       <!-- Quantidade -->
       <mat-form-field appearance="outline" class="half-width">
         <mat-label>Quantidade *</mat-label>
         <input matInput type="number" formControlName="quantity" placeholder="0" min="0" step="1">
-        <mat-error *ngIf="productForm.get('quantity')?.invalid && productForm.get('quantity')?.touched">
+        @if (productForm.get('quantity')?.invalid && productForm.get('quantity')?.touched) {
+        <mat-error>
           {{ getErrorMessage('quantity') }}
         </mat-error>
+        }
       </mat-form-field>
 
       <!-- Preço Total (apenas no modo de edição) -->
-      <mat-form-field *ngIf="isEditMode" appearance="outline" class="full-width">
+      @if (isEditMode) {
+      <mat-form-field appearance="outline" class="full-width">
         <mat-label>Preço Total</mat-label>
         <input matInput formControlName="totalPrice" readonly>
         <span matTextPrefix>R$ </span>
       </mat-form-field>
+      }
 
-      <!-- Categoria -->
+      <!-- Categoria - Modo Visualização (somente leitura) -->
+      @if (isViewOnly) {
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Categoria</mat-label>
+        <input matInput [value]="getCategoryName(productForm.get('categoryId')?.value)" readonly>
+      </mat-form-field>
+      } @else {
+      <!-- Categoria - Modo Edição/Criação (interativo) -->
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Categoria *</mat-label>
         <mat-select formControlName="categoryId">
-          <mat-option *ngFor="let category of categories" [value]="category.categoryId">
+          @for (category of categories; track category.categoryId) {
+          <mat-option [value]="category.categoryId">
             {{ category.categoryName }}
           </mat-option>
+          }
         </mat-select>
-        <mat-error *ngIf="productForm.get('categoryId')?.invalid && productForm.get('categoryId')?.touched">
+        @if (productForm.get('categoryId')?.invalid && productForm.get('categoryId')?.touched) {
+        <mat-error>
           {{ getErrorMessage('categoryId') }}
         </mat-error>
+        }
       </mat-form-field>
+      }
 
       <!-- Data de Registro (apenas no modo de edição) -->
-      <mat-form-field *ngIf="isEditMode" appearance="outline" class="half-width">
+      @if (isEditMode) {
+      <mat-form-field appearance="outline" class="half-width">
         <mat-label>Data de Registro</mat-label>
         <input matInput [matDatepicker]="registrationPicker" formControlName="registrationDate" readonly>
         <mat-datepicker-toggle matIconSuffix [for]="registrationPicker"></mat-datepicker-toggle>
         <mat-datepicker #registrationPicker disabled="true"></mat-datepicker>
       </mat-form-field>
+      }
 
       <!-- Data de Atualização (apenas no modo de edição) -->
-      <mat-form-field *ngIf="isEditMode" appearance="outline" class="half-width">
+      @if (isEditMode) {
+      <mat-form-field appearance="outline" class="half-width">
         <mat-label>Data de Atualização</mat-label>
         <input matInput [matDatepicker]="updatePicker" formControlName="updateDate" readonly>
         <mat-datepicker-toggle matIconSuffix [for]="updatePicker"></mat-datepicker-toggle>
         <mat-datepicker #updatePicker disabled="true"></mat-datepicker>
       </mat-form-field>
+      }
 
     </form>
   </mat-card-content>
 
-  <mat-card-actions align="end" class="form-actions">
-    <button mat-button type="button" (click)="onCancel()" class="cancel-button">
-      Cancelar
-    </button>
+  <mat-card-actions [align]="'end'" class="form-actions">
+    @if (!isViewOnly) {
+    <button mat-button type="button" (click)="onCancel()" class="cancel-button">Cancelar</button>
+    }
+
+    @if (isViewOnly) {
+    <button mat-raised-button color="primary" (click)="onCancel()" class="submit-button">Fechar</button>
+    } @else if (isEditMode) {
     <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="productForm.invalid"
-      class="submit-button">
-      {{ isEditMode ? 'Atualizar' : 'Criar' }} Produto
-    </button>
+      class="submit-button">Atualizar Produto</button>
+    } @else {
+    <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="productForm.invalid"
+      class="submit-button">Salvar Produto</button>
+    }
   </mat-card-actions>
 </mat-card>

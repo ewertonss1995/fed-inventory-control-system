@@ -12,6 +12,8 @@ import { ProductResponseModel } from '../../shared/model/product/response/produc
 import { ProductRequestModel } from '../../shared/model/product/request/product-request-model';
 import { CategoryResponseModel } from '../../shared/model/category/response/category-response-model';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { CategoryService } from '../../core/services/category/category-service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-product-form',
@@ -37,27 +39,38 @@ export class ProductFormComponent implements OnInit {
   @Input() isEditMode: boolean = false;
   @Input() isViewOnly: boolean = false;
   @Output() formSubmit = new EventEmitter<ProductRequestModel>();
-  @Output() formCancel = new EventEmitter<void>();
 
   productForm!: FormGroup;
   dialogTitle: string = 'Formulário de Produto';
 
-
   constructor(
     private formBuilder: FormBuilder,
+    private categoryService: CategoryService,
+    private router: Router,
     @Optional() @Inject(MAT_DIALOG_DATA) public dialogData: any,
     @Optional() private dialogRef: MatDialogRef<ProductFormComponent>
   ) { }
 
   ngOnInit(): void {
     this.setupComponentFromDialogData();
+    this.loadCategories();
     this.initializeForm();
+  }
+
+  private loadCategories() {
+    try {
+      this.categoryService.getCategoryList()
+        .subscribe((result) => {
+          this.categories = result;
+        });
+    } catch (error) {
+      console.error(`Erro ao buscar categorias no banco de dados: ${error}`);
+    }
   }
 
   private setupComponentFromDialogData(): void {
     if (this.dialogData) {
       this.product = this.dialogData.product;
-      this.categories = this.dialogData.categories || [];
       this.isEditMode = this.dialogData.isEditMode || false;
       this.isViewOnly = this.dialogData.isViewOnly || false;
       this.dialogTitle = this.dialogData.title || 'Formulário de Produto';
@@ -66,10 +79,8 @@ export class ProductFormComponent implements OnInit {
 
   private initializeForm(): void {
     if ((this.isEditMode || this.isViewOnly)) {
-      // Modo de edição/visualização - todos os campos
       this.buildFormToViewOrUpdate();
     } else {
-      // Modo de criação - apenas campos do ProductRequestModel
       this.productForm = this.formBuilder.group({
         productName: ['', [Validators.required, Validators.minLength(2)]],
         productDescription: ['', [Validators.required, Validators.minLength(5)]],
@@ -108,7 +119,7 @@ export class ProductFormComponent implements OnInit {
         ],
         totalPrice: [{ value: this.product.totalPrice, disabled: true }],
         categoryId: [
-          { value: this.product.category.categoryId, disabled: this.isViewOnly },
+          { value: this.product.category.categoryId, disabled: false }, // Nunca desabilitar aqui, controlamos no template
           [Validators.required]
         ],
         registrationDate: [{ value: new Date(this.product.registrationDate), disabled: true }],
@@ -159,7 +170,7 @@ export class ProductFormComponent implements OnInit {
     if (this.dialogRef) {
       this.dialogRef.close();
     } else {
-      this.formCancel.emit();
+      this.router.navigate(['/home']);
     }
   }
 
@@ -203,6 +214,10 @@ export class ProductFormComponent implements OnInit {
   }
 
   getCategoryName(categoryId: number): string {
+    if (!categoryId || !this.categories || this.categories.length === 0) {
+      return '';
+    }
+
     const category = this.categories.find(cat => cat.categoryId === categoryId);
     return category ? category.categoryName : '';
   }

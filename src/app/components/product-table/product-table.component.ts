@@ -11,6 +11,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { ActionsModal } from '../../shared/components/actions-modal/actions-modal';
 import { CategoryService } from '../../core/services/category/category-service';
 import { ProductFormComponent } from '../product-form/product-form.component';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-product-table',
@@ -36,18 +37,16 @@ export class ProductTableComponent implements OnInit {
     ];
 
   dataSource: any[] = [];
-  categories: CategoryResponseModel[] = [];
 
   constructor(
     private productService: ProductService,
-    private categoryService: CategoryService,
+    private router: Router,
     private cdr: ChangeDetectorRef,
     private dialog: MatDialog
   ) { }
 
   ngOnInit(): void {
     this.getProducts();
-    this.loadCategories();
   }
 
   private getProducts() {
@@ -74,16 +73,8 @@ export class ProductTableComponent implements OnInit {
     }
   }
 
-  private loadCategories() {
-    try {
-      this.categoryService.getCategoryList()
-        .subscribe((result) => {
-          this.categories = result;
-          this.cdr.detectChanges();
-        });
-    } catch (error) {
-      console.error(`Erro ao buscar categorias no banco de dados: ${error}`);
-    }
+  createNewProduct() {
+    this.router.navigate(['/form']);
   }
 
   handleClickOnIcon(product: ProductResponseModel) {
@@ -106,6 +97,7 @@ export class ProductTableComponent implements OnInit {
   }
 
   private openProductFormDialog(product: ProductResponseModel, enableEditing: boolean, dialogTitle: string) {
+    debugger
     const dialogRef = this.dialog.open(ProductFormComponent, {
       width: '100%',
       maxWidth: '95vw',
@@ -114,7 +106,6 @@ export class ProductTableComponent implements OnInit {
       disableClose: false,
       data: {
         product: product,
-        categories: this.categories,
         isEditMode: enableEditing,
         title: dialogTitle,
         isViewOnly: !enableEditing
@@ -124,18 +115,17 @@ export class ProductTableComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(formResult => {
       if (formResult && enableEditing) {
-        this.processProductUpdate(product.productId, formResult);
+        this.updateProduct(product.productId, formResult);
       }
     });
   }
 
-  private processProductUpdate(productId: number, productData: any) {
+  private updateProduct(productId: number, productData: any) {
     try {
-      // Implementar lógica de atualização
       this.productService.updateProduct(productId, productData).subscribe({
         next: () => {
           console.log('Produto atualizado com sucesso');
-          this.getProducts(); // Recarregar dados
+          this.getProducts();
         },
         error: (error) => {
           console.error(`Erro ao atualizar produto: ${error}`);
