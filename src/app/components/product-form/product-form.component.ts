@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, Optional, Inject } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, Optional, Inject, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -14,6 +14,7 @@ import { CategoryResponseModel } from '../../shared/model/category/response/cate
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { CategoryService } from '../../core/services/category/category-service';
 import { Router } from '@angular/router';
+import { ProductService } from '../../core/services/product/product-service';
 
 @Component({
   selector: 'app-product-form',
@@ -39,38 +40,67 @@ export class ProductFormComponent implements OnInit {
   @Input() isEditMode: boolean = false;
   @Input() isViewOnly: boolean = false;
   @Output() formSubmit = new EventEmitter<ProductRequestModel>();
+  @Output() formCancel = new EventEmitter<void>();
 
   productForm!: FormGroup;
   dialogTitle: string = 'Formulário de Produto';
+  isInitialized: boolean = false;
 
   constructor(
     private formBuilder: FormBuilder,
+    private cdr: ChangeDetectorRef,
+    private productService: ProductService,
     private categoryService: CategoryService,
     private router: Router,
     @Optional() @Inject(MAT_DIALOG_DATA) public dialogData: any,
     @Optional() private dialogRef: MatDialogRef<ProductFormComponent>
-  ) { }
+  ) {
+    // Inicializar formulário vazio para evitar erro NG01052
+    this.productForm = this.formBuilder.group({});
+  }
 
   ngOnInit(): void {
     this.setupComponentFromDialogData();
-    this.loadCategories();
-    this.initializeForm();
+
+    // Se já temos categorias, inicializar imediatamente
+    if (this.categories && this.categories.length > 0) {
+      this.initializeForm();
+    } else {
+      // Caso contrário, carregar categorias primeiro e depois inicializar
+      this.loadCategoriesAndInitialize();
+    }
   }
 
-  private loadCategories() {
+  private loadCategoriesAndInitialize() {
     try {
       this.categoryService.getCategoryList()
-        .subscribe((result) => {
-          this.categories = result;
+        .subscribe({
+          next: (result) => {
+            this.categories = result;
+            // Inicializar formulário após carregar categorias
+            this.initializeForm();
+            // Usar setTimeout para evitar problemas de detecção de mudanças
+            setTimeout(() => {
+              this.cdr.detectChanges();
+            });
+          },
+          error: (error) => {
+            console.error(`Erro ao buscar categorias no banco de dados: ${error}`);
+            // Mesmo com erro, inicializar formulário
+            this.initializeForm();
+          }
         });
     } catch (error) {
       console.error(`Erro ao buscar categorias no banco de dados: ${error}`);
+      // Mesmo com erro, inicializar formulário
+      this.initializeForm();
     }
   }
 
   private setupComponentFromDialogData(): void {
     if (this.dialogData) {
       this.product = this.dialogData.product;
+      this.categories = this.dialogData.categories || this.categories || [];
       this.isEditMode = this.dialogData.isEditMode || false;
       this.isViewOnly = this.dialogData.isViewOnly || false;
       this.dialogTitle = this.dialogData.title || 'Formulário de Produto';
@@ -90,11 +120,14 @@ export class ProductFormComponent implements OnInit {
       });
     }
 
-    // Atualizar o preço total quando unitPrice ou quantity mudarem
+    // Atualizar o preço total quando unitPrice ou quantidade mudarem
     if (this.isEditMode && !this.isViewOnly) {
       this.productForm.get('unitPrice')?.valueChanges.subscribe(() => this.updateTotalPrice());
       this.productForm.get('quantity')?.valueChanges.subscribe(() => this.updateTotalPrice());
     }
+
+    // Marcar como inicializado
+    this.isInitialized = true;
   }
 
   private buildFormToViewOrUpdate(): void {
@@ -136,6 +169,10 @@ export class ProductFormComponent implements OnInit {
   }
 
   onSubmit(): void {
+    if (!this.isInitialized || !this.productForm) {
+      return;
+    }
+
     if (this.isViewOnly) {
       this.closeDialog();
       return;
@@ -153,13 +190,51 @@ export class ProductFormComponent implements OnInit {
       };
 
       if (this.dialogRef) {
+        this.processFormSubmission(formValue, productRequest);
         this.dialogRef.close(productRequest);
       } else {
-        this.formSubmit.emit(productRequest);
+        // Se não estamos em dialog, processar diretamente
+        this.processFormSubmission(formValue, productRequest);
       }
     } else {
       this.markFormGroupTouched();
     }
+  }
+
+  private processFormSubmission(formValue: any, productRequest: ProductRequestModel): void {
+    if (this.isEditMode && formValue.productId) {
+      this.updateProduct(formValue, productRequest);
+    } else {
+      this.createNewProduct(productRequest);
+    }
+  }
+
+  private createNewProduct(productRequest: ProductRequestModel) {
+    this.productService.createProduct(productRequest).subscribe({
+      next: () => {
+        console.log('Produto criado com sucesso');
+        setTimeout(() => {
+          this.closeDialog();
+        });
+      },
+      error: (error) => {
+        console.error(`Erro ao criar produto: ${error}`);
+      }
+    });
+  }
+
+  private updateProduct(formValue: any, productRequest: ProductRequestModel) {
+    this.productService.updateProduct(formValue.productId, productRequest).subscribe({
+      next: () => {
+        console.log('Produto atualizado com sucesso');
+        setTimeout(() => {
+          this.closeDialog();
+        });
+      },
+      error: (error) => {
+        console.error(`Erro ao atualizar produto: ${error}`);
+      }
+    });
   }
 
   onCancel(): void {
@@ -170,6 +245,7 @@ export class ProductFormComponent implements OnInit {
     if (this.dialogRef) {
       this.dialogRef.close();
     } else {
+      this.formCancel.emit();
       this.router.navigate(['/home']);
     }
   }
@@ -214,11 +290,17 @@ export class ProductFormComponent implements OnInit {
   }
 
   getCategoryName(categoryId: number): string {
-    if (!categoryId || !this.categories || this.categories.length === 0) {
+    // Retorno seguro durante inicialização
+    if (!categoryId || !this.categories || !Array.isArray(this.categories) || this.categories.length === 0) {
       return '';
     }
 
-    const category = this.categories.find(cat => cat.categoryId === categoryId);
-    return category ? category.categoryName : '';
+    try {
+      const category = this.categories.find(cat => cat && cat.categoryId === categoryId);
+      return category ? category.categoryName || '' : '';
+    } catch (error) {
+      console.warn('Erro ao buscar nome da categoria:', error);
+      return '';
+    }
   }
 }

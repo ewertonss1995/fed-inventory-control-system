@@ -1,1 +1,14 @@
-<app-product-table></app-product-table>
+<div class="page-container">
+  <div class="header-section">
+    <h2 class="page-title">Sistema de Controle de Estoque</h2>
+    <button mat-raised-button color="primary" (click)="createNewProduct()"
+            class="action-button">
+      <mat-icon>add</mat-icon>
+      Cadastrar Produto
+    </button>
+  </div>
+
+  <div class="table-section">
+    <app-product-table></app-product-table>
+  </div>
+</div>

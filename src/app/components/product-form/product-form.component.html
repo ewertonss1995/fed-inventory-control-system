@@ -10,6 +10,7 @@
   </mat-card-header>
 
   <mat-card-content>
+    @if (isInitialized && productForm) {
     <form [formGroup]="productForm" (ngSubmit)="onSubmit()" class="product-form">
 
       <!-- Campo ID do Produto (apenas no modo de edição) -->
@@ -86,10 +87,12 @@
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Categoria *</mat-label>
         <mat-select formControlName="categoryId">
-          @for (category of categories; track category.categoryId) {
-          <mat-option [value]="category.categoryId">
-            {{ category.categoryName }}
-          </mat-option>
+          @if (isInitialized && categories && categories.length > 0) {
+            @for (category of categories; track category.categoryId) {
+            <mat-option [value]="category.categoryId">
+              {{ category.categoryName }}
+            </mat-option>
+            }
           }
         </mat-select>
         @if (productForm.get('categoryId')?.invalid && productForm.get('categoryId')?.touched) {
@@ -121,21 +124,28 @@
       }
 
     </form>
+    } @else {
+    <div class="loading-container">
+      <p>Carregando formulário...</p>
+    </div>
+    }
   </mat-card-content>
 
   <mat-card-actions [align]="'end'" class="form-actions">
-    @if (!isViewOnly) {
-    <button mat-button type="button" (click)="onCancel()" class="cancel-button">Cancelar</button>
-    }
+    @if (isInitialized) {
+      @if (!isViewOnly) {
+      <button mat-raised-button color="primary" type="button" (click)="onCancel()" class="action-button">Cancelar</button>
+      }
 
-    @if (isViewOnly) {
-    <button mat-raised-button color="primary" (click)="onCancel()" class="submit-button">Fechar</button>
-    } @else if (isEditMode) {
-    <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="productForm.invalid"
-      class="submit-button">Atualizar Produto</button>
-    } @else {
-    <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="productForm.invalid"
-      class="submit-button">Salvar Produto</button>
+      @if (isViewOnly) {
+      <button mat-raised-button color="primary" (click)="onCancel()" class="action-button">Fechar</button>
+      } @else if (isEditMode) {
+      <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="!productForm || productForm.invalid"
+        class="action-button">Atualizar Produto</button>
+      } @else {
+      <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="!productForm || productForm.invalid"
+        class="action-button">Salvar Produto</button>
+      }
     }
   </mat-card-actions>
 </mat-card>

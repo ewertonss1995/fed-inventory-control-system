@@ -73,10 +73,6 @@ export class ProductTableComponent implements OnInit {
     }
   }
 
-  createNewProduct() {
-    this.router.navigate(['/form']);
-  }
-
   handleClickOnIcon(product: ProductResponseModel) {
     let productId = product.productId;
 
@@ -97,7 +93,6 @@ export class ProductTableComponent implements OnInit {
   }
 
   private openProductFormDialog(product: ProductResponseModel, enableEditing: boolean, dialogTitle: string) {
-    debugger
     const dialogRef = this.dialog.open(ProductFormComponent, {
       width: '100%',
       maxWidth: '95vw',

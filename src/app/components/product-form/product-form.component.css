@@ -11,6 +11,19 @@
   gap: 16px;
 }
 
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+  min-height: 200px;
+}
+
+.loading-container p {
+  font-size: 16px;
+  color: #666;
+}
+
 .full-width {
   width: 100%;
 }
@@ -42,6 +55,22 @@
   margin: 0;
 }
 
+.action-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  font-weight: 500;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.action-button:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+}
+
 /* Responsivo para telas menores */
 @media (max-width: 768px) {
   .product-form-card {
@@ -68,8 +97,9 @@
     margin-top: 8px;
   }
 
-  .submit-button {
+  .action-button {
     width: 100%;
+    justify-content: center;
   }
 }
 
