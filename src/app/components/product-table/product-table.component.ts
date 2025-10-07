@@ -1,5 +1,4 @@
-import { CategoryResponseModel } from '../../shared/model/category/response/category-response-model';
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { MatCardModule } from '@angular/material/card';
@@ -9,8 +8,6 @@ import { ProductService } from '../../core/services/product/product-service';
 import { formatarData } from '../../shared/utils/utilitario-formatador';
 import { MatDialog } from '@angular/material/dialog';
 import { ActionsModal } from '../../shared/components/actions-modal/actions-modal';
-import { CategoryService } from '../../core/services/category/category-service';
-import { ProductFormComponent } from '../product-form/product-form.component';
 import { Router } from '@angular/router';
 
 @Component({
@@ -37,6 +34,7 @@ export class ProductTableComponent implements OnInit {
     ];
 
   dataSource: any[] = [];
+  product: ProductResponseModel | null = null;
 
   constructor(
     private productService: ProductService,
@@ -73,10 +71,6 @@ export class ProductTableComponent implements OnInit {
     }
   }
 
-  createNewProduct() {
-    this.router.navigate(['/form']);
-  }
-
   handleClickOnIcon(product: ProductResponseModel) {
     let productId = product.productId;
 
@@ -84,56 +78,20 @@ export class ProductTableComponent implements OnInit {
       .afterClosed().subscribe(result => {
         if (result) {
           if (result.action === 'edit') {
-            this.openProductFormDialog(product, true, 'Editar Produto');
+            this.router.navigate(
+              ['/products/form/edit'], { queryParams: { productId } }
+            );
           }
           else if (result.action === 'view') {
-            this.openProductFormDialog(product, false, 'Visualizar Produto');
+            this.router.navigate(
+              ['/products/form/view'], { queryParams: { productId } }
+            );
           }
           else if (result.action === 'delete') {
             this.deleteProduct(productId);
           }
         }
       });
-  }
-
-  private openProductFormDialog(product: ProductResponseModel, enableEditing: boolean, dialogTitle: string) {
-    debugger
-    const dialogRef = this.dialog.open(ProductFormComponent, {
-      width: '100%',
-      maxWidth: '95vw',
-      height: 'auto',
-      maxHeight: '90vh',
-      disableClose: false,
-      data: {
-        product: product,
-        isEditMode: enableEditing,
-        title: dialogTitle,
-        isViewOnly: !enableEditing
-      },
-      panelClass: 'custom-dialog-container'
-    });
-
-    dialogRef.afterClosed().subscribe(formResult => {
-      if (formResult && enableEditing) {
-        this.updateProduct(product.productId, formResult);
-      }
-    });
-  }
-
-  private updateProduct(productId: number, productData: any) {
-    try {
-      this.productService.updateProduct(productId, productData).subscribe({
-        next: () => {
-          console.log('Produto atualizado com sucesso');
-          this.getProducts();
-        },
-        error: (error) => {
-          console.error(`Erro ao atualizar produto: ${error}`);
-        }
-      });
-    } catch (error) {
-      console.error(`Erro inesperado: ${error}`);
-    }
   }
 
   private deleteProduct(productId: number) {

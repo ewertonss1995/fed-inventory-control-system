@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, Optional, Inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -11,9 +11,10 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { ProductResponseModel } from '../../shared/model/product/response/product-response-model';
 import { ProductRequestModel } from '../../shared/model/product/request/product-request-model';
 import { CategoryResponseModel } from '../../shared/model/category/response/category-response-model';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { CategoryService } from '../../core/services/category/category-service';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { ProductService } from '../../core/services/product/product-service';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-product-form',
@@ -27,54 +28,112 @@ import { Router } from '@angular/router';
     MatButtonModule,
     MatCardModule,
     MatDatepickerModule,
-    MatNativeDateModule,
-    MatDialogModule
+    MatNativeDateModule
   ],
   templateUrl: './product-form.component.html',
   styleUrls: ['./product-form.component.css']
 })
-export class ProductFormComponent implements OnInit {
-  @Input() product?: ProductResponseModel;
-  @Input() categories: CategoryResponseModel[] = [];
-  @Input() isEditMode: boolean = false;
-  @Input() isViewOnly: boolean = false;
-  @Output() formSubmit = new EventEmitter<ProductRequestModel>();
+export class ProductFormComponent implements OnInit, OnDestroy {
+  product?: ProductResponseModel;
+  categories: CategoryResponseModel[] = [];
+  isEditMode: boolean = false;
+  isViewOnly: boolean = false;
 
   productForm!: FormGroup;
-  dialogTitle: string = 'Formulário de Produto';
+  pageTitle: string = 'Formulário de Produto'
+  action!: string;
+  isInitialized: boolean = false;
+  productId: number | null = null;
+  private destroy$ = new Subject<void>();
 
   constructor(
     private formBuilder: FormBuilder,
+    private cdr: ChangeDetectorRef,
+    private productService: ProductService,
     private categoryService: CategoryService,
     private router: Router,
-    @Optional() @Inject(MAT_DIALOG_DATA) public dialogData: any,
-    @Optional() private dialogRef: MatDialogRef<ProductFormComponent>
-  ) { }
-
-  ngOnInit(): void {
-    this.setupComponentFromDialogData();
-    this.loadCategories();
-    this.initializeForm();
+    private route: ActivatedRoute
+  ) {
+    this.productForm = this.formBuilder.group({});
   }
 
-  private loadCategories() {
+  ngOnInit(): void {
+    this.route.params.pipe(takeUntil(this.destroy$)).subscribe((params) => {
+      this.action = params['action'];
+    });
+
+    this.route.queryParams
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((queryParams) => {
+        this.productId = queryParams['productId'] ? Number(queryParams['productId']) : null;
+      });
+
+    this.buildPageInfo();
+    this.loadCategoriesAndInitialize();
+  }
+
+  private buildPageInfo() {
+    if (this.productId && this.action == 'edit') {
+      this.isEditMode = true;
+      this.isViewOnly = false;
+      this.pageTitle = 'Editar Produto';
+      this.loadProductById(this.productId);
+    } else if (this.productId && this.action == 'view') {
+      this.isViewOnly = true;
+      this.isEditMode = false;
+      this.pageTitle = 'Visualizar Produto';
+      this.loadProductById(this.productId);
+    } else {
+      this.isEditMode = false;
+      this.pageTitle = 'Novo Produto';
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private loadCategoriesAndInitialize() {
     try {
       this.categoryService.getCategoryList()
-        .subscribe((result) => {
-          this.categories = result;
+        .subscribe({
+          next: (result) => {
+            this.categories = result;
+            this.initializeForm();
+
+            setTimeout(() => {
+              this.cdr.detectChanges();
+            });
+          },
+          error: (error) => {
+            console.error(`Erro ao buscar categorias no banco de dados: ${error}`);
+            this.initializeForm();
+          }
         });
     } catch (error) {
       console.error(`Erro ao buscar categorias no banco de dados: ${error}`);
+      this.initializeForm();
     }
   }
 
-  private setupComponentFromDialogData(): void {
-    if (this.dialogData) {
-      this.product = this.dialogData.product;
-      this.isEditMode = this.dialogData.isEditMode || false;
-      this.isViewOnly = this.dialogData.isViewOnly || false;
-      this.dialogTitle = this.dialogData.title || 'Formulário de Produto';
-    }
+  private loadProductById(productId: number) {
+    this.productService.getProductById(productId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (product: ProductResponseModel) => {
+          this.product = product;
+          console.log('Produto carregado:', this.product);
+
+          if (this.categories.length > 0) {
+            this.initializeForm();
+          }
+        },
+        error: (error) => {
+          console.error(`Erro ao carregar produto: ${error}`);
+          this.router.navigate(['/home']);
+        }
+      });
   }
 
   private initializeForm(): void {
@@ -90,11 +149,12 @@ export class ProductFormComponent implements OnInit {
       });
     }
 
-    // Atualizar o preço total quando unitPrice ou quantity mudarem
     if (this.isEditMode && !this.isViewOnly) {
       this.productForm.get('unitPrice')?.valueChanges.subscribe(() => this.updateTotalPrice());
       this.productForm.get('quantity')?.valueChanges.subscribe(() => this.updateTotalPrice());
     }
+
+    this.isInitialized = true;
   }
 
   private buildFormToViewOrUpdate(): void {
@@ -136,8 +196,12 @@ export class ProductFormComponent implements OnInit {
   }
 
   onSubmit(): void {
+    if (!this.isInitialized || !this.productForm) {
+      return;
+    }
+
     if (this.isViewOnly) {
-      this.closeDialog();
+      this.navigateBack();
       return;
     }
 
@@ -152,26 +216,54 @@ export class ProductFormComponent implements OnInit {
         categoryId: formValue.categoryId
       };
 
-      if (this.dialogRef) {
-        this.dialogRef.close(productRequest);
-      } else {
-        this.formSubmit.emit(productRequest);
-      }
+      this.processFormSubmission(formValue, productRequest);
     } else {
       this.markFormGroupTouched();
     }
   }
 
-  onCancel(): void {
-    this.closeDialog();
+  private processFormSubmission(formValue: any, productRequest: ProductRequestModel): void {
+    if (this.isEditMode && formValue.productId) {
+      this.updateProduct(formValue, productRequest);
+    } else {
+      this.createNewProduct(productRequest);
+    }
   }
 
-  private closeDialog(): void {
-    if (this.dialogRef) {
-      this.dialogRef.close();
-    } else {
-      this.router.navigate(['/home']);
-    }
+  private createNewProduct(productRequest: ProductRequestModel) {
+    this.productService.createProduct(productRequest).subscribe({
+      next: () => {
+        console.log('Produto criado com sucesso');
+        setTimeout(() => {
+          this.navigateBack();
+        });
+      },
+      error: (error) => {
+        console.error(`Erro ao criar produto: ${error}`);
+      }
+    });
+  }
+
+  private updateProduct(formValue: any, productRequest: ProductRequestModel) {
+    this.productService.updateProduct(formValue.productId, productRequest).subscribe({
+      next: () => {
+        console.log('Produto atualizado com sucesso');
+        setTimeout(() => {
+          this.navigateBack();
+        });
+      },
+      error: (error) => {
+        console.error(`Erro ao atualizar produto: ${error}`);
+      }
+    });
+  }
+
+  onCancel(): void {
+    this.navigateBack();
+  }
+
+  private navigateBack(): void {
+    this.router.navigate(['/home']);
   }
 
   private markFormGroupTouched(): void {
@@ -214,11 +306,16 @@ export class ProductFormComponent implements OnInit {
   }
 
   getCategoryName(categoryId: number): string {
-    if (!categoryId || !this.categories || this.categories.length === 0) {
+    if (!categoryId || !this.categories || !Array.isArray(this.categories) || this.categories.length === 0) {
       return '';
     }
 
-    const category = this.categories.find(cat => cat.categoryId === categoryId);
-    return category ? category.categoryName : '';
+    try {
+      const category = this.categories.find(cat => cat && cat.categoryId === categoryId);
+      return category ? category.categoryName || '' : '';
+    } catch (error) {
+      console.warn('Erro ao buscar nome da categoria:', error);
+      return '';
+    }
   }
 }
