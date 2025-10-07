@@ -17,6 +17,6 @@ export class PrincipalComponent {
   constructor(private router: Router) { }
 
   createNewProduct() {
-    this.router.navigate(['/form']);
+    this.router.navigate(['/products/form/create']);
   }
 }

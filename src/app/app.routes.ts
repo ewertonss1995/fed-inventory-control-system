@@ -7,5 +7,12 @@ export const routes: Routes = [
   { path: '', component: HomeComponent },
   { path: 'login', component: HomeComponent },
   { path: 'home', component: PrincipalComponent },
-  { path: 'form', component: ProductFormComponent },
+    {
+    title: 'Cadastrar Produto',
+    path: 'products/form/:action',
+    loadComponent: () =>
+      import('./components/product-form/product-form.component').then(
+        (m) => m.ProductFormComponent
+      ),
+  }
 ];

@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, Optional, Inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -11,10 +11,10 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { ProductResponseModel } from '../../shared/model/product/response/product-response-model';
 import { ProductRequestModel } from '../../shared/model/product/request/product-request-model';
 import { CategoryResponseModel } from '../../shared/model/category/response/category-response-model';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { CategoryService } from '../../core/services/category/category-service';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ProductService } from '../../core/services/product/product-service';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-product-form',
@@ -28,23 +28,23 @@ import { ProductService } from '../../core/services/product/product-service';
     MatButtonModule,
     MatCardModule,
     MatDatepickerModule,
-    MatNativeDateModule,
-    MatDialogModule
+    MatNativeDateModule
   ],
   templateUrl: './product-form.component.html',
   styleUrls: ['./product-form.component.css']
 })
-export class ProductFormComponent implements OnInit {
-  @Input() product?: ProductResponseModel;
-  @Input() categories: CategoryResponseModel[] = [];
-  @Input() isEditMode: boolean = false;
-  @Input() isViewOnly: boolean = false;
-  @Output() formSubmit = new EventEmitter<ProductRequestModel>();
-  @Output() formCancel = new EventEmitter<void>();
+export class ProductFormComponent implements OnInit, OnDestroy {
+  product?: ProductResponseModel;
+  categories: CategoryResponseModel[] = [];
+  isEditMode: boolean = false;
+  isViewOnly: boolean = false;
 
   productForm!: FormGroup;
-  dialogTitle: string = 'Formulário de Produto';
+  pageTitle: string = 'Formulário de Produto'
+  action!: string;
   isInitialized: boolean = false;
+  productId: number | null = null;
+  private destroy$ = new Subject<void>();
 
   constructor(
     private formBuilder: FormBuilder,
@@ -52,23 +52,46 @@ export class ProductFormComponent implements OnInit {
     private productService: ProductService,
     private categoryService: CategoryService,
     private router: Router,
-    @Optional() @Inject(MAT_DIALOG_DATA) public dialogData: any,
-    @Optional() private dialogRef: MatDialogRef<ProductFormComponent>
+    private route: ActivatedRoute
   ) {
-    // Inicializar formulário vazio para evitar erro NG01052
     this.productForm = this.formBuilder.group({});
   }
 
   ngOnInit(): void {
-    this.setupComponentFromDialogData();
+    this.route.params.pipe(takeUntil(this.destroy$)).subscribe((params) => {
+      this.action = params['action'];
+    });
 
-    // Se já temos categorias, inicializar imediatamente
-    if (this.categories && this.categories.length > 0) {
-      this.initializeForm();
+    this.route.queryParams
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((queryParams) => {
+        this.productId = queryParams['productId'] ? Number(queryParams['productId']) : null;
+      });
+
+    this.buildPageInfo();
+    this.loadCategoriesAndInitialize();
+  }
+
+  private buildPageInfo() {
+    if (this.productId && this.action == 'edit') {
+      this.isEditMode = true;
+      this.isViewOnly = false;
+      this.pageTitle = 'Editar Produto';
+      this.loadProductById(this.productId);
+    } else if (this.productId && this.action == 'view') {
+      this.isViewOnly = true;
+      this.isEditMode = false;
+      this.pageTitle = 'Visualizar Produto';
+      this.loadProductById(this.productId);
     } else {
-      // Caso contrário, carregar categorias primeiro e depois inicializar
-      this.loadCategoriesAndInitialize();
+      this.isEditMode = false;
+      this.pageTitle = 'Novo Produto';
     }
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   private loadCategoriesAndInitialize() {
@@ -77,34 +100,40 @@ export class ProductFormComponent implements OnInit {
         .subscribe({
           next: (result) => {
             this.categories = result;
-            // Inicializar formulário após carregar categorias
             this.initializeForm();
-            // Usar setTimeout para evitar problemas de detecção de mudanças
+
             setTimeout(() => {
               this.cdr.detectChanges();
             });
           },
           error: (error) => {
             console.error(`Erro ao buscar categorias no banco de dados: ${error}`);
-            // Mesmo com erro, inicializar formulário
             this.initializeForm();
           }
         });
     } catch (error) {
       console.error(`Erro ao buscar categorias no banco de dados: ${error}`);
-      // Mesmo com erro, inicializar formulário
       this.initializeForm();
     }
   }
 
-  private setupComponentFromDialogData(): void {
-    if (this.dialogData) {
-      this.product = this.dialogData.product;
-      this.categories = this.dialogData.categories || this.categories || [];
-      this.isEditMode = this.dialogData.isEditMode || false;
-      this.isViewOnly = this.dialogData.isViewOnly || false;
-      this.dialogTitle = this.dialogData.title || 'Formulário de Produto';
-    }
+  private loadProductById(productId: number) {
+    this.productService.getProductById(productId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (product: ProductResponseModel) => {
+          this.product = product;
+          console.log('Produto carregado:', this.product);
+
+          if (this.categories.length > 0) {
+            this.initializeForm();
+          }
+        },
+        error: (error) => {
+          console.error(`Erro ao carregar produto: ${error}`);
+          this.router.navigate(['/home']);
+        }
+      });
   }
 
   private initializeForm(): void {
@@ -120,13 +149,11 @@ export class ProductFormComponent implements OnInit {
       });
     }
 
-    // Atualizar o preço total quando unitPrice ou quantidade mudarem
     if (this.isEditMode && !this.isViewOnly) {
       this.productForm.get('unitPrice')?.valueChanges.subscribe(() => this.updateTotalPrice());
       this.productForm.get('quantity')?.valueChanges.subscribe(() => this.updateTotalPrice());
     }
 
-    // Marcar como inicializado
     this.isInitialized = true;
   }
 
@@ -174,7 +201,7 @@ export class ProductFormComponent implements OnInit {
     }
 
     if (this.isViewOnly) {
-      this.closeDialog();
+      this.navigateBack();
       return;
     }
 
@@ -189,13 +216,7 @@ export class ProductFormComponent implements OnInit {
         categoryId: formValue.categoryId
       };
 
-      if (this.dialogRef) {
-        this.processFormSubmission(formValue, productRequest);
-        this.dialogRef.close(productRequest);
-      } else {
-        // Se não estamos em dialog, processar diretamente
-        this.processFormSubmission(formValue, productRequest);
-      }
+      this.processFormSubmission(formValue, productRequest);
     } else {
       this.markFormGroupTouched();
     }
@@ -214,7 +235,7 @@ export class ProductFormComponent implements OnInit {
       next: () => {
         console.log('Produto criado com sucesso');
         setTimeout(() => {
-          this.closeDialog();
+          this.navigateBack();
         });
       },
       error: (error) => {
@@ -228,7 +249,7 @@ export class ProductFormComponent implements OnInit {
       next: () => {
         console.log('Produto atualizado com sucesso');
         setTimeout(() => {
-          this.closeDialog();
+          this.navigateBack();
         });
       },
       error: (error) => {
@@ -238,16 +259,11 @@ export class ProductFormComponent implements OnInit {
   }
 
   onCancel(): void {
-    this.closeDialog();
+    this.navigateBack();
   }
 
-  private closeDialog(): void {
-    if (this.dialogRef) {
-      this.dialogRef.close();
-    } else {
-      this.formCancel.emit();
-      this.router.navigate(['/home']);
-    }
+  private navigateBack(): void {
+    this.router.navigate(['/home']);
   }
 
   private markFormGroupTouched(): void {
@@ -290,7 +306,6 @@ export class ProductFormComponent implements OnInit {
   }
 
   getCategoryName(categoryId: number): string {
-    // Retorno seguro durante inicialização
     if (!categoryId || !this.categories || !Array.isArray(this.categories) || this.categories.length === 0) {
       return '';
     }
